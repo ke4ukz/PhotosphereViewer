@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- for optimal display on high DPI devices -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Photo Sphere Viewer</title>
+
+        <link rel="stylesheet" href="/css/photo-sphere-viewer.min.css">
+        <link rel="stylesheet" href="/css/main.css">
+
+        <script src="/js/images.js"></script>
+        <script src="/lib/exif-js/exif.js"></script>
+        <script type="text/template" id="locationicon">
+            <svg version="1.1" id="fi_447031" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"><g><g><path fill="currentcolor" d="M256,0C153.755,0,70.573,83.182,70.573,185.426c0,126.888,165.939,313.167,173.004,321.035 c6.636,7.391,18.222,7.378,24.846,0c7.065-7.868,173.004-194.147,173.004-321.035C441.425,83.182,358.244,0,256,0z M256,278.719 c-51.442,0-93.292-41.851-93.292-93.293S204.559,92.134,256,92.134s93.291,41.851,93.291,93.293S307.441,278.719,256,278.719z"></path></g></svg>
+        </script>
+        <script type="text/template" id="listicon">
+            <svg enable-background="new 0 0 60.123 60.123" version="1.1" viewBox="0 0 60.123 60.123" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><path fill="currentcolor" d="m57.124 51.893h-40.204c-1.657 0-3-1.343-3-3s1.343-3 3-3h40.203c1.657 0 3 1.343 3 3s-1.342 3-2.999 3z"/><path fill="currentcolor" d="m57.124 33.062h-40.204c-1.657 0-3-1.343-3-3s1.343-3 3-3h40.203c1.657 0 3 1.343 3 3 1e-3 1.657-1.342 3-2.999 3z"/><path fill="currentcolor" d="m57.124 14.231h-40.204c-1.657 0-3-1.343-3-3s1.343-3 3-3h40.203c1.657 0 3 1.343 3 3s-1.342 3-2.999 3z"/><circle fill="currentcolor" cx="4.029" cy="11.463" r="4.029"/><circle fill="currentcolor" cx="4.029" cy="30.062" r="4.029"/><circle fill="currentcolor" cx="4.029" cy="48.661" r="4.029"/></svg>
+        </script>
+        <script type="text/template" id="firsticon">
+            <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentcolor" d="m7.414 12 6.293 6.293c.39.39.39 1.024 0 1.414s-1.024.39-1.414 0l-7-7c-.391-.39-.391-1.024 0-1.414l7-7c.39-.39 1.024-.39 1.414 0s.39 1.024 0 1.414zm5 0 6.293 6.293c.39.39.39 1.024 0 1.414s-1.024.39-1.414 0l-7-7c-.391-.39-.391-1.024 0-1.414l7-7c.39-.39 1.024-.39 1.414 0s.39 1.024 0 1.414z"/></svg>
+        </script>
+        <script type="text/template" id="previcon">
+            <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"> <path fill="currentcolor" d="m9.414 12 6.293 6.293c.39.39.39 1.024 0 1.414s-1.024.39-1.414 0l-7-7c-.391-.39-.391-1.024 0-1.414l7-7c.39-.39 1.024-.39 1.414 0s.39 1.024 0 1.414z"/> </svg>
+        </script>
+        <script type="text/template" id="nexticon">
+            <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentcolor" d="m14.586 12-6.293-6.293c-.39-.39-.39-1.024 0-1.414s1.024-.39 1.414 0l7 7c.391.39.391 1.024 0 1.414l-7 7c-.39.39-1.024.39-1.414 0s-.39-1.024 0-1.414z"/></svg>
+        </script>
+        <script type="text/template" id="lasticon">
+            <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentcolor" d="m11.586 12-6.293-6.293c-.39-.39-.39-1.024 0-1.414s1.024-.39 1.414 0l7 7c.391.39.391 1.024 0 1.414l-7 7c-.39.39-1.024.39-1.414 0s-.39-1.024 0-1.414zm5 0-6.293-6.293c-.39-.39-.39-1.024 0-1.414s1.024-.39 1.414 0l7 7c.391.39.391 1.024 0 1.414l-7 7c-.39.39-1.024.39-1.414 0s-.39-1.024 0-1.414z"/></svg>
+        </script>
+        <script type="importmap">
+        {
+            "imports": {
+                "three": "/lib/three.js/three.module.js",
+                "@photo-sphere-viewer/core": "/lib/photo-sphere-viewer/core/index.module.js"
+            }
+        }
+        </script>
+
+        <script type="module">
+            import { Viewer } from '@photo-sphere-viewer/core';
+
+            const listnameRegex = /^\?l=(list_.*?)$/gm;
+            const listname = listnameRegex.exec(window.location.search);
+
+            if (listname !== null && rebuildImageList(listname[1])) {
+                document.title = imagedata.title;
+
+                document.getElementById("viewer").classList.remove("hidden");
+                document.getElementById("invalidlist").classList.add("hidden");
+                const NAVLIST = document.createElement("UL");
+
+                function buildNavList() {
+                    NAVLIST.innerHTML = "";
+                    NAVLIST.id = "list";
+                    imagedata.images.forEach((e)=>{
+                        const LI = document.createElement("LI");
+                        const A = document.createElement("A");
+                        A.textContent = e.caption;
+                        A.setAttribute("href", `#${e.src}`);
+                        LI.append(A);
+                        NAVLIST.append(LI);
+                    });
+                }
+
+                function convertGPSCoord(coord, ref) {
+                    if (!coord || !ref) {
+                        return false;
+                    }
+                    let ret = coord[0];
+                    if (ref == "S" || ref == "W") {
+                        ret *= -1;
+                    }
+                    return ret;
+                }
+
+                function handleEXIFData(exifdata) {
+                    console.debug(exifdata);
+                    const mapbutton = viewer.navbar.getButton("map");
+                    if (!exifdata) {
+                        mapbutton.hide();
+                        return;
+                    }
+                    let lat = convertGPSCoord(exifdata.GPSLatitude, exifdata.GPSLatitudeRef);
+                    let long = convertGPSCoord(exifdata.GPSLongitude, exifdata.GPSLongitudeRef);
+                    if (lat !== false && long !== false) {
+                        mapbutton.href = `https://www.google.com/maps/search/?api=1&query=${lat}%2C${long}`;
+                        mapbutton.show();
+                    }
+                }
+
+                async function showImage(toshow) {
+                    // toshow should be the index of te image to show (int) or the path to the image (string)
+                    let index = false;
+                    if (typeof toshow === "string") {
+                        index = imagedata.indices[toshow];
+                    } else if (typeof toshow === "number") {
+                        index = toshow;
+                    }
+                    if (index === false) {
+                        console.error(`Unknown image ${toshow}`);
+                        return;
+                    }
+                    if (index < 0) {
+                        imagedata.curindex = imagedata.images.length - 1;
+                    } else if (index >= imagedata.images.length) {
+                        imagedata.curindex = 0;
+                    } else {
+                        imagedata.curindex = index
+                    }
+                    let showDetails = viewer.panel.isVisible("description");
+                    viewer.panel.hide();
+                    viewer.navbar.getButton("map").hide();
+                    const img = new Image();
+                    img.src = imagedata.images[imagedata.curindex].src;
+                    await img.decode();
+                    EXIF.getData(img, function() { handleEXIFData(EXIF.getAllTags(this)); });
+                    
+                    viewer.setPanorama(imagedata.images[imagedata.curindex].src, {
+                        caption: imagedata.images[imagedata.curindex].caption,
+                        description: imagedata.images[imagedata.curindex].description,
+                        position: {
+                            pitch: imagedata.images[imagedata.curindex].pitch,
+                            yaw: imagedata.images[imagedata.curindex].yaw
+                        },
+                        zoom: imagedata.images[imagedata.curindex].zoom
+                    });
+                    if (showDetails) {
+                        const P = document.createElement("P");
+                        P.textContent = imagedata.images[imagedata.curindex].caption;
+                        const PANELDATA = document.createTextNode(P.outerHTML);
+                        PANELDATA.appendData(imagedata.images[imagedata.curindex].description);
+                        viewer.panel.show({id: "description", content: PANELDATA.data});
+                    }
+                }
+
+                function nextImage() {
+                    showImage(imagedata.curindex + 1);
+                }
+
+                function prevImage() {
+                    showImage(imagedata.curindex - 1);
+                }
+
+                const viewer = new Viewer({
+                    container: document.querySelector('#viewer'),
+                    navbar: [
+                        {id: "list", title: "Show images list", content: document.querySelector("#listicon").innerHTML, onClick: (viewer) =>{
+                            //viewer.overlay.show({dismissable: true, id: "test", text:"Test overlay text", title: "Test"});
+                            viewer.panel.show({id: "test", content: NAVLIST.innerHTML});
+                        }},
+                        {id: "first", title: "Jump to first", content: document.querySelector("#firsticon").innerHTML, onClick: (viewer)=>{
+                            showImage(0);
+                        }},
+                        {id: "prev", title: "Previous image", content: document.querySelector("#previcon").innerHTML, onClick: (viewer)=>{
+                            prevImage();
+                        }},
+                        {id: "next", title: "Next image", content: document.querySelector("#nexticon").innerHTML, onClick: (viewer)=>{
+                            nextImage();
+                        }},
+                        {id: "last", title: "Jump to last", content: document.querySelector("#lasticon").innerHTML, onClick: (viewer)=>{
+                            showImage(-1);
+                        }},
+                        "zoom",
+                        "move",
+                        "description",
+                        {id: "map", title: "Show on map", content: document.querySelector("#locationicon").innerHTML, visible: false, href: "", onClick: (viewer) => {
+                            window.open(viewer.navbar.getButton("map").href, "_blank");
+                        }},
+                        "caption",
+                        "fullscreen",
+                    ],
+                    minFov: 10,
+                    defaultTransition: {
+                        effect: "black",
+                        speed: 0.0
+                    }
+                });
+                viewer.addEventListener("position-updated", (data) => {
+                    document.getElementById("yawcoord").textContent = `${data.position.yaw.toFixed(2)}`;
+                    document.getElementById("pitchcoord").textContent = `${data.position.pitch.toFixed(2)}`;
+                });
+                viewer.addEventListener("zoom-updated", (data) => {
+                    document.getElementById("zoomamount").textContent = `${data.zoomLevel.toFixed(1)}`;
+                });
+                viewer.addEventListener("key-press", ({key})=> {
+                    switch(key) {
+                        case "ArrowLeft":
+                        case "ArrowDown":
+                            prevImage();
+                            break;
+                        case "ArrowRight":
+                        case "ArrowUp":
+                        case "Enter":
+                        case " ":
+                            nextImage();
+                            break;
+                        case "F9":
+                            document.getElementById("coords").classList.toggle("hidden");
+                            break;
+                        case "Home":
+                            showImage(0);
+                            break;
+                        case "End":
+                            showImage(-1);
+                            break;
+                        case "i":
+                            const detailsbutton = viewer.navbar.getButton('description', false);
+                            //console.log(detailsbutton);
+                            break;
+                        default:
+                            console.debug(key);
+                        }
+                });
+                viewer.addEventListener("panorama-loaded", ()=>{window.location.hash = "#"});
+                document.getElementById("copycoords").addEventListener("click", (data) => {
+                    navigator.clipboard.writeText(`        pitch: ${viewer.getPosition().pitch},\n        yaw: ${viewer.getPosition().yaw},\n        zoom: ${viewer.getZoomLevel()},`);
+                });
+                window.location.hash = "#";
+                window.addEventListener("hashchange", (e) => {
+                    viewer.panel.hide("list");
+                    if (window.location.hash.length > 1) {
+                        showImage(window.location.hash.substr(1));
+                    }
+                })
+                buildNavList();
+                showImage(0);
+            } else if (window.location.search === "?masterlist") {
+                document.getElementById("invalidlist").classList.add("hidden");
+                const UL = document.getElementById("masterlist");
+                for (let imagelistkey in allimages) {
+                    const LI = document.createElement("LI");
+                    const A = document.createElement("A");
+                    A.textContent = `${allimages[imagelistkey].title} (${allimages[imagelistkey].images.length} images)`;
+                    A.setAttribute("href", `/?l=${imagelistkey}`);
+                    LI.append(A);
+                    UL.append(LI);
+                }
+                UL.classList.remove("hidden");
+            } else {
+                document.title = "Invalid list";
+            }
+        </script>
+    </head>
+    <body>
+        <h1 id="invalidlist">Invalid list!</h1>
+        <ul id="masterlist" class="hidden"></ul>
+        <div id="coords" class="hidden">
+            Yaw: <span id="yawcoord">0</span>
+            Pitch: <span id="pitchcoord">0</span>
+            Zoom: <span id="zoomamount">0</span>
+            <button type="button" id="copycoords">Copy</button>
+        </div>
+        <div id="viewer" class="hidden"></div>
+    </body>
+</html>

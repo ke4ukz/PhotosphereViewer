@@ -1,0 +1,57 @@
+body {
+    margin: 0px;
+    font-family: sans-serif;
+    color: white;
+    background-color: black;
+}
+span {
+    margin-right: 0.5rem;
+}
+a {
+    color: #eee;
+}
+a:visited {
+    color: #eee;
+}
+a:hover {
+    color: white;
+}
+#viewer {
+    width: 100vw;
+    height: 100vh;
+    margin: 0px;
+}
+#invalidlist {
+    color: red;
+    text-align: center;
+}
+#coords {
+    position: fixed;
+    z-index: 100;
+    left: 0px;
+    top: 0px;
+    max-width: 25vw;
+    max-height: 1.5rem;
+    padding: 0.1rem;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+#list {
+    position: fixed;
+    z-index: 99;
+    top: 0px;
+    left: 0px;
+    max-width: 33vw;
+    max-height: 80vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+}
+#list ul {
+    padding-left: 0px;
+    list-style-position: inside;
+}
+.hidden {
+    display: none;
+}
+.psv-navbar {
+    background: rgba(0, 0, 0, 0.5);
+}
