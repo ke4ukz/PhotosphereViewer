@@ -1,14 +1,5 @@
-/*
- * Database of photo spheres
- * src: path to the image
- * pitch: up/down tilt in radians (positive is up)
- * yaw: left/right pan in radians (positive is right)
- * zoom: zoom (FoV) level, 0 to 100 goes between minFov and maxFov in Viewer config
- * caption: the text that will be displayed on the nav bar and in the title of the description pane
- * description: additional text that will be shown in the description pane
- */
-
-
+// Database of photo spheres
+// TODO: Replace this virtual database with an actual database (not stored in the js file)
 const allimages = {
     list_60e48abc9dfa49a9b728b4ab349a4d38: {
         title: "2025 VA Beach Trip",
@@ -60,6 +51,7 @@ const imagedata = {
 }
 
 // build imagedata from allimages based on the provided list name
+// TODO: replace this with a database load
 function rebuildImageList(listname) {
     if (allimages[listname]) {
         imagedata.images = [];

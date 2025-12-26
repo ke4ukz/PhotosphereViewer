@@ -23,34 +23,53 @@ if (listname !== null && rebuildImageList(listname[1])) {
         });
     }
 
+    // converts south or west coordinates to negative (or returns false if invalid data is passed)
     function convertGPSCoord(coord, ref) {
         if (!coord || !ref) {
             return false;
         }
-        let ret = coord[0];
-        if (ref == "S" || ref == "W") {
+        try {
+            let ret = coord[0];
+        } catch (ex) {
+            console.error("Error getting first coordinate", ex);
+            return false;
+        }
+        if (typeof ret !== "number") {
+            console.error(`Coordinate was not a number (it was ${ret}, a ${typeof ret})`);
+            return false;
+        }
+        if (ref === "S" || ref === "W") {
             ret *= -1;
+        } else if (ref !== "N" && ref !== "E") {
+            console.error(`Coordinate reference was not N, S, E, or W (it was ${ref})`);
+            return false
         }
         return ret;
     }
 
+    // callback called by EXIF.getData
     function handleEXIFData(exifdata) {
         console.debug(exifdata);
         const mapbutton = viewer.navbar.getButton("map");
         if (!exifdata) {
+            console.warn("No EXIF data");
             mapbutton.hide();
             return;
         }
         let lat = convertGPSCoord(exifdata.GPSLatitude, exifdata.GPSLatitudeRef);
         let long = convertGPSCoord(exifdata.GPSLongitude, exifdata.GPSLongitudeRef);
-        if (lat !== false && long !== false) {
-            mapbutton.href = `https://www.google.com/maps/search/?api=1&query=${lat}%2C${long}`;
-            mapbutton.show();
+        if (lat !== true || long !== true) {
+            console.warn("No GPS coordinates");
+            mapbutton.hide();
+            return;
         }
+
+        mapbutton.href = `https://www.google.com/maps/search/?api=1&query=${lat}%2C${long}`;
+        mapbutton.show();
     }
 
     async function showImage(toshow) {
-        // toshow should be the index of te image to show (int) or the path to the image (string)
+        // toshow should be the index of the image to show (int) or the path to the image (string)
         let index = false;
         if (typeof toshow === "string") {
             index = imagedata.indices[toshow];
